@@ -3,6 +3,7 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 import matplotlib
+import time
 
 # For Render deployment
 matplotlib.use('Agg')
@@ -34,16 +35,41 @@ def predict():
     # Get stock symbol from HTML form
     stock = request.form['stock']
 
+
     # Download stock data
-    data = yf.download(
+    try:
+        data = yf.download(
+            stock,
+            period='5y',
+            auto_adjust=True,
+            progress=False,
+            threads=False
+        )
 
-        stock,
+        # Fix MultiIndex columns
+        if isinstance(data.columns, pd.MultiIndex):
+            data.columns = data.columns.get_level_values(0)
 
-       period='5y',
-       auto_adjust=True,
-       progress=False
-    )
-    print(data.tail())
+        # Retry if empty
+        if data.empty:
+            time.sleep(2)
+            data = yf.download(
+                stock,
+                period='5y',
+                auto_adjust=True,
+                progress=False,
+                threads=False
+            )
+
+            if isinstance(data.columns, pd.MultiIndex):
+                data.columns = data.columns.get_level_values(0)
+
+    except Exception:
+        return render_template(
+            "index.html",
+            error="❌ Yahoo Finance temporary limit reached. Try again later."
+        )
+
     # Check if stock data exists
 
     if data.empty:
