@@ -40,6 +40,11 @@ def predict():
         end='2026-05-01'
 
     )
+    if data.empty:
+     return render_template(
+        "index.html",
+        prediction_text="Invalid stock symbol or no data found"
+    )
 
     # Keep only Close prices
     data = data[['Close']]
@@ -132,6 +137,10 @@ def predict():
 # RUN APP
 # =========================
 
-if __name__ == '__main__':
+import os
 
-    app.run(host='0.0.0.0',port=5000)
+if __name__ == "__main__":
+    app.run(
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 5000))
+    )
