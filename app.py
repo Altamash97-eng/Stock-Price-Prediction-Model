@@ -32,14 +32,16 @@ def predict():
 
     # Download latest stock data
     data = yf.download(
-
-        stock,
-
-        start='2020-01-01',
-
-        end='2026-05-01'
-
+     tickers=stock,
+     period="1y",
+     interval="1d",
+     progress=False,
+     auto_adjust=True,
+     threads=False
     )
+
+    print(data.head())
+    print("Rows:", len(data))
     if data.empty:
      return render_template(
         "index.html",
