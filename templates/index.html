@@ -490,7 +490,26 @@
 
             text-shadow:0 0 15px #ef4444;
 
-        }
+        } 
+      .error-box{
+
+        margin-top:20px;
+
+        background:#7f1d1d;
+
+        color:white;
+
+       padding:15px;
+
+       border-radius:15px;
+
+        font-weight:bold;
+
+       text-align:center;
+
+        box-shadow:0 0 15px rgba(239,68,68,0.4);
+
+      }
 
         /* GRAPH */
 
@@ -688,14 +707,18 @@
                 </button>
 
             </form>
-            {% if prediction_text %}
-             <h2 style="color:white;">
-                {{ prediction_text }}
-                </h2>
-            {% endif %}
-       
-
+           
+           
         </div>
+        {% if error %}
+
+       <div class="error-box">
+
+       {{ error }}
+
+       </div>
+
+       {% endif %}
      
         {% if prediction %}
 
@@ -802,3 +825,4 @@ updateClock();
 </body>
 
 </html>
+
