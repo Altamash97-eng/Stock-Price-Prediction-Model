@@ -51,11 +51,15 @@ def predict():
 
     # Create prediction column
     data['Prediction'] = data[['Close']].shift(-1)
+    data.dropna(inplace=True)
 
     # Features and labels
     X = np.array(data.drop(['Prediction'], axis=1))[:-1]
 
     y = np.array(data['Prediction'])[:-1]
+
+    # Train model
+    model.fit(X, y)
 
     # Latest price
     last_price = np.array(data[['Close']].tail(1))
@@ -64,6 +68,7 @@ def predict():
     next_prediction = model.predict(last_price)
 
     predicted_price = round(float(next_prediction[0]), 2)
+   
 
     # =========================
     # CREATE GRAPH
@@ -142,5 +147,5 @@ import os
 if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
-        port=int(os.environ.get("PORT", 5000))
+        port=int(os.environ.get("PORT", 10000))
     )
