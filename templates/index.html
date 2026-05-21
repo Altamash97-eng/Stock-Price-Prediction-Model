@@ -691,8 +691,13 @@
        
 
         </div>
+     {% if prediction %}
 
-        {% if prediction %}
+         <h2 style="color:white;">
+         Predicted Price: {{ prediction }}
+         </h2>
+
+       {% endif %}
 
         <!-- CARDS -->
 
