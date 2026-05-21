@@ -39,11 +39,11 @@ def predict():
 
         stock,
 
-        start='2020-01-01',
-
-        end='2026-5-1'
-
+       period='5y',
+       auto_adjust=True,
+       progress=False
     )
+    print(data.tail())
     # Check if stock data exists
 
     if data.empty:
