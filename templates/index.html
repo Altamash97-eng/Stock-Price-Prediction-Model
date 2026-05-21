@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Stock Prediction Dashboard</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+        .market-status{
+
+    background:#111827;
+
+    padding:10px;
+
+    text-align:center;
+
+    color:#22c55e;
+
+    font-weight:bold;
+
+    border-bottom:1px solid #1e293b;
+
+}
+#clock{
+
+    text-align:center;
+
+    margin-top:10px;
+
+    color:#38bdf8;
+
+    font-size:18px;
+
+}
+
+        body{
+
+            background: linear-gradient(-45deg,#0f172a,#111827,#1e293b,#020617);
+
+            background-size:400% 400%;
+
+            animation:gradientBG 12s ease infinite;
+
+            color:white;
+
+            font-family:Arial, sans-serif;
+
+            min-height:100vh;
+
+            overflow-x:hidden;
+
+        }
+       
+
+
+        @keyframes gradientBG{
+
+            0%{
+                background-position:0% 50%;
+            }
+
+            50%{
+                background-position:100% 50%;
+            }
+
+            100%{
+                background-position:0% 50%;
+            }
+
+        }
+
+        /* PARTICLES */
+
+        .particles{
+
+            position:fixed;
+
+            width:100%;
+
+            height:100%;
+
+            top:0;
+
+            left:0;
+
+            background-image:
+            radial-gradient(circle, rgba(255,255,255,0.15) 2px, transparent 2px);
+
+            background-size:50px 50px;
+
+            animation:moveParticles 20s linear infinite;
+
+            z-index:-1;
+
+        }
+
+        @keyframes moveParticles{
+
+            from{
+                transform:translateY(0);
+            }
+
+            to{
+                transform:translateY(-100px);
+            }
+
+        }
+
+        /* NAVBAR */
+     
+
+        .navbar{
+
+            background:#111827;
+
+            padding:15px 40px;
+
+            box-shadow:0 0 20px rgba(0,0,0,0.5);
+
+        }
+
+        .navbar-brand{
+
+            color:#22c55e !important;
+
+            font-size:28px;
+
+            font-weight:bold;
+
+            text-shadow:0 0 15px #22c55e;
+
+        }
+
+        .nav-link{
+
+            color:white !important;
+
+            margin-left:20px;
+
+            transition:0.3s;
+
+        }
+
+        .nav-link:hover{
+
+            color:#22c55e !important;
+
+        }
+
+        /* LIVE TICKER */
+
+        .ticker-wrap{
+
+            overflow:hidden;
+
+            background:#111827;
+
+            padding:10px 0;
+
+            white-space:nowrap;
+
+        }
+
+        .ticker{
+
+            display:inline-block;
+
+            animation:tickerMove 15s linear infinite;
+
+            color:#22c55e;
+
+            font-weight:bold;
+
+        }
+
+        @keyframes tickerMove{
+
+            from{
+                transform:translateX(100%);
+            }
+
+            to{
+                transform:translateX(-100%);
+            }
+
+        }
+
+        /* MAIN */
+
+        .main-container{
+
+            width:90%;
+
+            margin:auto;
+
+            margin-top:40px;
+
+        }
+
+        .search-box{
+
+            background:rgba(17,24,39,0.85);
+
+            backdrop-filter:blur(10px);
+
+            padding:35px;
+
+            border-radius:25px;
+
+            box-shadow:0 0 25px rgba(0,0,0,0.5);
+
+            animation:fadeIn 1s ease;
+
+        }
+
+        @keyframes fadeIn{
+
+            from{
+                opacity:0;
+                transform:translateY(20px);
+            }
+
+            to{
+                opacity:1;
+                transform:translateY(0px);
+            }
+
+        }
+
+        /* TYPING TITLE */
+
+        .typing-text{
+
+            overflow:hidden;
+
+            border-right:3px solid #22c55e;
+
+            white-space:nowrap;
+
+            width:0;
+
+            margin:auto;
+
+            color:#22c55e;
+
+            text-shadow:0 0 20px #22c55e;
+
+            animation:
+            typing 4s steps(40,end) forwards,
+            blinkCursor 0.8s infinite;
+
+        }
+
+        @keyframes typing{
+
+            from{
+                width:0;
+            }
+
+            to{
+                width:100%;
+            }
+
+        }
+
+        @keyframes blinkCursor{
+
+            50%{
+                border-color:transparent;
+            }
+
+        }
+
+        .subtext{
+
+            margin-top:20px;
+
+            color:#cbd5e1;
+
+            font-size:18px;
+
+        }
+
+        /* INPUT */
+
+        input{
+
+            width:70%;
+
+            padding:15px;
+
+            border:none;
+
+            border-radius:15px;
+
+            outline:none;
+
+            font-size:18px;
+
+            margin-top:25px;
+
+            background:#1e293b;
+
+            color:white;
+
+        }
+
+        input::placeholder{
+
+            color:#94a3b8;
+
+        }
+
+        /* BUTTON */
+
+        button{
+
+            position:relative;
+
+            overflow:hidden;
+
+            padding:15px 30px;
+
+            border:none;
+
+            border-radius:15px;
+
+            background:#22c55e;
+
+            color:white;
+
+            font-weight:bold;
+
+            margin-left:10px;
+
+            transition:0.3s;
+
+        }
+
+        button:hover{
+
+            transform:scale(1.05);
+
+            background:#16a34a;
+
+            box-shadow:0 0 20px #22c55e;
+
+        }
+
+        button::before{
+
+            content:''; 
+
+            position:absolute;
+
+            top:0;
+
+            left:-100%;
+
+            width:100%;
+
+            height:100%;
+
+            background:rgba(255,255,255,0.2);
+
+            transition:0.5s;
+
+        }
+
+        button:hover::before{
+
+            left:100%;
+
+        }
+
+        /* CARDS */
+
+        .card-box{
+
+            background:rgba(17,24,39,0.9);
+
+            border-radius:20px;
+
+            padding:25px;
+
+            text-align:center;
+
+            box-shadow:0 0 20px rgba(0,0,0,0.4);
+
+            transition:0.3s;
+
+            margin-top:25px;
+
+            animation:floatCard 3s ease-in-out infinite;
+
+        }
+
+        @keyframes floatCard{
+
+            0%{
+                transform:translateY(0px);
+            }
+
+            50%{
+                transform:translateY(-8px);
+            }
+
+            100%{
+                transform:translateY(0px);
+            }
+
+        }
+
+        .card-box:hover{
+
+            transform:translateY(-5px);
+
+            box-shadow:0 0 25px rgba(34,197,94,0.5);
+            transform:translateY(-5px);
+
+         box-shadow:0 0 25px rgba(34,197,94,0.4);
+
+         transition:0.3s;
+
+        }
+
+        .card-title{
+
+            color:#94a3b8;
+
+            font-size:18px;
+
+        }
+
+        .card-value{
+
+            font-size:32px;
+
+            font-weight:bold;
+
+            margin-top:10px;
+
+            animation:pulse 2s infinite;
+
+        }
+
+        @keyframes pulse{
+
+            0%{
+                transform:scale(1);
+            }
+
+            50%{
+                transform:scale(1.05);
+            }
+
+            100%{
+                transform:scale(1);
+            }
+
+        }
+
+        .buy{
+
+            color:#22c55e;
+
+            text-shadow:0 0 15px #22c55e;
+
+        }
+
+        .sell{
+
+            color:#ef4444;
+
+            text-shadow:0 0 15px #ef4444;
+
+        }
+
+        /* GRAPH */
+
+        .graph{
+
+            width:100%;
+
+            border-radius:20px;
+
+            margin-top:20px;
+
+            box-shadow:
+            0 0 20px rgba(59,130,246,0.5),
+            0 0 40px rgba(34,197,94,0.3);
+
+            transition:0.4s;
+            border:2px solid transparent;
+
+             background-image:
+             linear-gradient(#111827,#111827),
+             linear-gradient(45deg,#22c55e,#38bdf8);
+
+             background-origin:border-box;
+
+             background-clip:padding-box,border-box; 
+            animation:floatGraph 4s ease-in-out infinite;
+            @keyframes floatGraph{
+
+            0%{
+               transform:translateY(0px);
+            }
+
+            50%{
+               transform:translateY(-5px);
+            }
+
+           100%{
+             transform:translateY(0px);
+            }
+
+}
+
+        }
+  
+        .graph:hover{
+
+            transform:scale(1.02);
+
+        }
+
+        /* FOOTER */
+
+        footer{
+
+            margin-top:50px;
+
+            padding:20px;
+
+            text-align:center;
+
+            color:#94a3b8;
+
+        }
+        .floating-chart{
+
+    position:fixed;
+
+    width:100%;
+
+    height:100%;
+
+    background:url('https://www.transparenttextures.com/patterns/cubes.png');
+
+    opacity:0.05;
+
+    z-index:-1;
+
+}
+.ai-processing{
+
+    margin-top:15px;
+
+    color:#22c55e;
+
+    font-size:16px;
+
+    animation:blink 1.5s infinite;
+
+}
+
+@keyframes blink{
+
+    0%{
+        opacity:1;
+    }
+
+    50%{
+        opacity:0.4;
+    }
+
+    100%{
+        opacity:1;
+    }
+
+}
+    </style>
+
+</head>
+
+<body>
+    <div class="floating-chart"></div>
+    <div class="ai-processing">
+
+    ML Model Processing Live Market Data...
+
+</div>
+
+    <!-- PARTICLES -->
+    <div class="particles"></div>
+
+    <!-- NAVBAR -->
+
+    <nav class="navbar navbar-expand-lg">
+
+        <div class="container-fluid">
+
+            <a class="navbar-brand" href="#">
+                <i class="fa-solid fa-chart-line"></i>
+                Stock Value Predictor
+            </a>
+
+            <div>
+
+                <a class="nav-link d-inline" href="#">Home</a>
+                <a class="nav-link d-inline" href="#">Dashboard</a>
+                <a class="nav-link d-inline" href="#">Market</a>
+                <a class="nav-link d-inline" href="#">About</a>
+
+            </div>
+
+        </div>
+
+    </nav>
+    <div class="market-status">
+        
+   🟢 Market Open • ML Analysis Active
+
+</div>
+<div id="clock"></div>
+
+    <!-- TICKER -->
+
+    <div class="ticker-wrap">
+
+        <div class="ticker">
+
+            AAPL ▲ 2.4% &nbsp;&nbsp;&nbsp;
+            TSLA ▼ 1.2% &nbsp;&nbsp;&nbsp;
+            TCS ▲ 3.1% &nbsp;&nbsp;&nbsp;
+            RELIANCE ▲ 1.8% &nbsp;&nbsp;&nbsp;
+            POWERGRID ▲ 2.2% &nbsp;&nbsp;&nbsp;
+            INFY ▲ 1.5%
+
+        </div>
+
+    </div>
+
+    <!-- MAIN -->
+
+    <div class="main-container">
+
+        <!-- SEARCH BOX -->
+
+        <div class="search-box">
+
+            <h1 class="typing-text">
+                Machine Learning Model Stock Prediction Dashboard
+            </h1>
+
+            <p class="subtext">
+                Analyze stocks with Machine Learning Model
+            </p>
+
+            <form action="/predict" method="POST">
+
+                <input
+                type="text"
+                name="stock"
+                placeholder="Enter Stock Symbol (AAPL, TCS.NS...)"
+                required
+                >
+
+                <button type="submit">
+                    Predict
+                </button>
+
+            </form>
+       
+
+        </div>
+
+        {% if prediction %}
+
+        <!-- CARDS -->
+
+        <div class="row">
+
+            <div class="col-md-4">
+
+                <div class="card-box">
+
+                    <div class="card-title">
+                        Stock Symbol
+                    </div>
+
+                    <div class="card-value">
+                        {{ stock }}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-4">
+
+                <div class="card-box">
+
+                    <div class="card-title">
+                        Predicted Price
+                    </div>
+
+                    <div class="card-value buy">
+                        {{ prediction }}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-4">
+
+                <div class="card-box">
+
+                    <div class="card-title">
+                        AI Signal
+                    </div>
+
+                    <div class="card-value buy">
+                        BUY
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- GRAPH -->
+
+        <div class="card-box">
+
+            <h2>
+                Stock Prediction Graph 📈
+            </h2>
+
+            <img
+            src="{{ url_for('static', filename='graph.png') }}"
+            class="graph"
+            >
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+    <!-- FOOTER -->
+
+    <footer>
+        <div>©2026 Stock Value Predictor</div>
+        <div>
+            Developed by Altamash Akhtar
+        </div>
+          
+
+    </footer>
+<script>
+
+function updateClock(){
+
+    const now = new Date();
+
+    document.getElementById("clock").innerHTML =
+    now.toLocaleTimeString();
+
+}
+
+setInterval(updateClock,1000);
+
+updateClock();
+
+</script>
+</body>
+
+</html>
