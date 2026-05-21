@@ -44,9 +44,9 @@ def predict():
     print("Rows:", len(data))
     if data.empty:
      return render_template(
-        "index.html",
-        prediction_text="Invalid stock symbol or no data found"
-    )
+     "index.html",
+     prediction_text="Invalid stock symbol or no data found"
+     )
 
     # Keep only Close prices
     data = data[['Close']]
