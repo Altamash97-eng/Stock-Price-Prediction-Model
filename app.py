@@ -130,9 +130,9 @@ def predict():
     # Return to HTML page
     return render_template(
 
-        'index.html',
+        "index.html",
 
-        prediction=predicted_price,
+        prediction_text=f"Predicted Price: ${predicted_price}",
 
         stock=stock
 
