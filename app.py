@@ -55,9 +55,21 @@ def predict():
         error="❌ Stock data not found. Please enter a valid stock symbol."
 
     )
+    # WRITE HERE 
+    # Remove NaN rows
+    data = data.dropna()
+
+    # Check again after removing NaN
+    if data.empty:
+     return render_template(
+        'index.html',
+        error="❌ Stock data unavailable for prediction."
+    )
 
     # Keep only Close prices
     data = data[['Close']]
+    #Remove NaN again
+    data = data.dropna()
 
     # Create next day prediction column
     data['Prediction'] = data[['Close']].shift(-1)
