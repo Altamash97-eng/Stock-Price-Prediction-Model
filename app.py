@@ -2,42 +2,33 @@ from flask import Flask, render_template, request
 import yfinance as yf
 import pandas as pd
 import numpy as np
-import matplotlib
-import time
-
-# For Render deployment
-matplotlib.use('Agg')
-
 import matplotlib.pyplot as plt
-import joblib
+from sklearn.linear_model import LinearRegression
+import os
+import time
 
 app = Flask(__name__)
 
-# Load trained ML model
-model = joblib.load('stock_model.pkl')
-
-# =========================
-# HOME PAGE
-# =========================
+# Create stocks folder automatically
+os.makedirs("stocks", exist_ok=True)
 
 @app.route('/')
 def home():
-
-    return render_template('index.html')
-
-# =========================
-# PREDICTION ROUTE
-# =========================
+    return render_template("index.html")
 
 @app.route('/predict', methods=['POST'])
 def predict():
 
-    # Get stock symbol from HTML form
-    stock = request.form['stock']
+    stock = request.form['stock'].upper().strip()
 
+    # ==========================================
+    # FETCH LIVE DATA + CSV FALLBACK
+    # ==========================================
 
-    # Download stock data
     try:
+
+        time.sleep(2)
+
         data = yf.download(
             stock,
             period='5y',
@@ -46,145 +37,160 @@ def predict():
             threads=False
         )
 
-        # Fix MultiIndex columns
+        # Fix MultiIndex
         if isinstance(data.columns, pd.MultiIndex):
             data.columns = data.columns.get_level_values(0)
 
-        # Retry if empty
+        # If Yahoo fails → CSV fallback
         if data.empty:
-            time.sleep(2)
-            data = yf.download(
-                stock,
-                period='5y',
-                auto_adjust=True,
-                progress=False,
-                threads=False
+
+            print("Yahoo failed. Using CSV fallback...")
+
+            csv_path = f"stocks/{stock}.csv"
+
+            if os.path.exists(csv_path):
+
+                data = pd.read_csv(csv_path)
+
+                print("CSV fallback loaded.")
+
+            else:
+
+                return render_template(
+                    "index.html",
+                    error="❌ Stock data unavailable."
+                )
+
+    except Exception as e:
+
+        print("Yahoo Error:", e)
+
+        csv_path = f"stocks/{stock}.csv"
+
+        if os.path.exists(csv_path):
+
+            data = pd.read_csv(csv_path)
+
+            print("CSV fallback loaded.")
+
+        else:
+
+            return render_template(
+                "index.html",
+                error="❌ Yahoo blocked requests and no CSV backup found."
             )
 
-            if isinstance(data.columns, pd.MultiIndex):
-                data.columns = data.columns.get_level_values(0)
+    # ==========================================
+    # DATA CLEANING
+    # ==========================================
 
-    except Exception:
+    if 'close' in data.columns:
+        data.rename(columns={'close': 'Close'}, inplace=True)
+
+    if 'Close' not in data.columns:
+
         return render_template(
             "index.html",
-            error="❌ Yahoo Finance temporary limit reached. Try again later."
+            error="❌ Close price data missing."
         )
 
-    # Check if stock data exists
-
-    if data.empty:
-
-      return render_template(
-
-        'index.html',
-
-        error="❌ Stock data not found. Please enter a valid stock symbol."
-
-    )
-    # WRITE HERE 
-    # Remove NaN rows
-    data = data.dropna()
-
-    # Check again after removing NaN
-    if data.empty:
-     return render_template(
-        'index.html',
-        error="❌ Stock data unavailable for prediction."
-    )
-
-    # Keep only Close prices
     data = data[['Close']]
-    #Remove NaN again
+
+    data['Close'] = pd.to_numeric(data['Close'], errors='coerce')
+
     data = data.dropna()
 
-    # Create next day prediction column
-    data['Prediction'] = data[['Close']].shift(-1)
+    if data.empty:
 
-    # Features and labels
-    X = np.array(data.drop(['Prediction'], axis=1))[:-1]
+        return render_template(
+            "index.html",
+            error="❌ No valid stock data available."
+        )
 
-    y = np.array(data['Prediction'])[:-1]
+    # ==========================================
+    # MACHINE LEARNING
+    # ==========================================
 
-    # Latest stock price
-    last_price = np.array(data[['Close']].tail(1))
+    forecast_days = 1
 
-    # Predict next day stock price
-    next_prediction = model.predict(last_price)
+    data['Prediction'] = data[['Close']].shift(-forecast_days)
 
-    predicted_price = round(float(next_prediction[0]), 2)
+    data = data.dropna()
 
-    # =========================
-    # CREATE GRAPH
-    # =========================
+    X = np.array(data[['Close']])
 
-    graph_data = data.tail(100).copy()
+    y = np.array(data['Prediction'])
 
-    graph_data['Predicted'] = graph_data['Close'].shift(-1)
+    model = LinearRegression()
 
-    graph_data.dropna(inplace=True)
+    model.fit(X, y)
 
-    # Create graph figure
-    plt.figure(figsize=(12,6))
+    latest_price = np.array(data[['Close']].tail(1))
 
-    # Actual prices
+    prediction = model.predict(latest_price)
+
+    predicted_price = round(prediction[0], 2)
+    # ==========================================
+    # GRAPH
+    # ==========================================
+
+    # Ensure static folder exists
+    os.makedirs("static", exist_ok=True)
+
+    plt.figure(figsize=(12, 6))
+
+    # Create plotting dataframe from processed `data`
+    plot_df = data.copy()
+    plot_df.sort_index(inplace=True)
+
+    # Set latest predicted value on the newest row
+    plot_df['Prediction'] = plot_df['Close'].shift(-1)
+    plot_df.at[plot_df.index[-1], 'Prediction'] = predicted_price
+
+    # Actual stock prices
     plt.plot(
-
-        graph_data.index,
-
-        graph_data['Close'],
-
+        plot_df.tail(60).index,
+        plot_df['Close'].tail(60),
         label='Actual Price',
-
-        color='blue'
-
+        color='blue',
+        linewidth=2,
     )
 
     # Predicted prices
     plt.plot(
-
-        graph_data.index,
-
-        graph_data['Predicted'],
-
+        plot_df.tail(60).index,
+        plot_df['Prediction'].tail(60),
+        linestyle='--',
         label='Predicted Price',
-
         color='red',
-
-        linestyle='dashed'
-
+        linewidth=2,
     )
 
-    # Graph details
+    # Graph labels
     plt.title(f"{stock} Stock Prediction")
-
     plt.xlabel("Date")
-
     plt.ylabel("Price")
-
     plt.legend()
-
     plt.grid(True)
+    import matplotlib.dates as mdates
 
-    # Save graph
-    plt.savefig('static/graph.png')
+    plt.gca().xaxis.set_major_formatter(
+    mdates.DateFormatter('%Y-%m')
+    )
 
+    plt.xticks(rotation=30)
+    plt.tight_layout()
+
+    graph_path = os.path.join("static", "graph.png")
+    plt.savefig(graph_path)
     plt.close()
 
-    # Return result to HTML
     return render_template(
-
-        'index.html',
-
+        "index.html",
         prediction=predicted_price,
-
-        stock=stock
-
+        stock=stock,
+        graph=graph_path
     )
 
-# =========================
-# RUN FLASK APP
-# =========================
-
-if __name__ == '__main__':
-
-    app.run(host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    app.run(debug=True)
