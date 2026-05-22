@@ -51,6 +51,9 @@ def predict():
             if os.path.exists(csv_path):
 
                 data = pd.read_csv(csv_path)
+                data['Date'] = pd.to_datetime(data['Date'])
+                data.set_index('Date', inplace=True)
+                data.sort_index(inplace=True)
 
                 print("CSV fallback loaded.")
 
@@ -70,6 +73,9 @@ def predict():
         if os.path.exists(csv_path):
 
             data = pd.read_csv(csv_path)
+            data['Date'] = pd.to_datetime(data['Date'])
+            data.set_index('Date', inplace=True)
+            data.sort_index(inplace=True)
 
             print("CSV fallback loaded.")
 
