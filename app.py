@@ -67,9 +67,11 @@ def predict():
             csv_path = f"stocks/{stock}.csv"
 
             if os.path.exists(csv_path):
-                data = pd.read_csv(csv_path)
-                data['Date'] = pd.to_datetime(data['Date'])
-                data.set_index('Date', inplace=True)
+                data = pd.read_csv(
+                csv_path,
+                index_col=0,
+                parse_dates=True
+                )
                 data.sort_index(inplace=True)
                 print("CSV fallback loaded.")
             else:
@@ -88,9 +90,12 @@ def predict():
         csv_path = f"stocks/{stock}.csv"
 
         if os.path.exists(csv_path):
-            data = pd.read_csv(csv_path)
-            data['Date'] = pd.to_datetime(data['Date'])
-            data.set_index('Date', inplace=True)
+            data = pd.read_csv(
+            csv_path,
+            index_col=0,
+            parse_dates=True
+            )
+            
             data.sort_index(inplace=True)
             print("CSV fallback loaded.")
         else:
