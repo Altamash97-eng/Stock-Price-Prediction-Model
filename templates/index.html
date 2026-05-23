@@ -266,6 +266,30 @@
             blinkCursor 0.8s infinite;
 
         }
+        .main.title{
+            font-size:48px;
+            line-height:1.2;
+            word-wrap:break-word;
+        }
+        /* Laptop */
+        @media (max-width:992px){
+            .main.title{
+                font-size:38px
+            }
+        }
+        /* Tablet */
+        @media (max-width:768px){
+            .main.title{
+                font-size:30px;
+            }
+        }
+            /* Mobile */
+        @media (max-width:480px){
+            .main.title{
+                font-size:24px;
+            }
+        }
+    
 
         @keyframes typing{
 
@@ -685,7 +709,7 @@
 
         <div class="search-box">
 
-            <h1 class="typing-text">
+            <h1 class="typing-text main title">
                 Machine Learning Model Stock Prediction Dashboard
             </h1>
 
